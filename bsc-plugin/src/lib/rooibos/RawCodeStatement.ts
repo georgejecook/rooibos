@@ -20,7 +20,7 @@ export class RawCodeStatement extends Statement {
         return [new SourceNode(
             this.range.start.line + 1,
             this.range.start.character,
-            this.sourceFile ? this.sourceFile.pathAbsolute : state.srcPath,
+            this.sourceFile ? this.sourceFile.srcPath : state.srcPath,
             this.source
         )];
     }

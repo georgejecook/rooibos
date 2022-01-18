@@ -28,6 +28,7 @@ namespace rooibos
 
       m.printLine()
 
+      ignoredInfo = invalid
       'bs:disable-next-line
       ignoredInfo = m.testRunner.runtimeConfig.getIgnoredTestInfo()
       m.printLine(0, "Total: " + Rooibos.Common.AsString(m.allStats.ranCount))

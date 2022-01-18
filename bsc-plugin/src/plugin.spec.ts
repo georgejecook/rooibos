@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-confusing-void-expression */
+import type { BsConfig } from 'brighterscript';
 import { DiagnosticSeverity, Program, ProgramBuilder, util } from 'brighterscript';
 import { expect } from 'chai';
 import { standardizePath as s } from './lib/rooibos/Utils';
@@ -28,13 +29,13 @@ describe('RooibosPlugin', () => {
         fsExtra.ensureDirSync(tmpPath);
 
         builder = new ProgramBuilder();
-        builder.options = util.normalizeAndResolveConfig(options);
+        builder.options = util.normalizeAndResolveConfig(options as BsConfig);
         builder.program = new Program(builder.options);
         program = builder.program;
         builder.plugins = new PluginInterface([plugin], builder.logger);
         program.plugins = new PluginInterface([plugin], builder.logger);
         program.createSourceScope(); //ensure source scope is created
-        plugin.beforeProgramCreate(builder);
+        plugin.beforeProgramCreate({ builder: builder });
         plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
 
 
@@ -49,7 +50,7 @@ describe('RooibosPlugin', () => {
     describe('basic tests', () => {
 
         it('does not find tests with no annotations', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 class notATest
                 end class
             `);
@@ -58,7 +59,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
         it('finds a basic suite', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                     @describe("groupA")
@@ -74,7 +75,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
         it('finds a suite name, only', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @only
                 @suite("named")
                 class ATest
@@ -94,7 +95,7 @@ describe('RooibosPlugin', () => {
             expect(suite.isSolo).to.be.true;
         });
         it('ignores a suite', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @ignore
                 @suite
                 class ATest
@@ -111,7 +112,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
         it('ignores a group', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
             @suite
                     class ATest
                     @ignore
@@ -129,7 +130,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testsCount).to.equal(0);
         });
         it('ignores a test', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
             @suite
             class ATest
             @describe("groupA")
@@ -147,7 +148,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testsCount).to.equal(0);
         });
         it('multiple groups', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                 @describe("groupA")
@@ -175,7 +176,7 @@ describe('RooibosPlugin', () => {
             expect(suite.getTestGroups()[0].testCases).to.have.length(1);
         });
         it('duplicate test name', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                     @describe("groupA")
@@ -201,7 +202,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
         it('empty test group', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                     @describe("groupA")
@@ -212,7 +213,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
         it('multiple test group annotations - same name', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                     @describe("groupA")
@@ -227,7 +228,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.be.empty;
         });
         it('params test with negative numbers', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                     @describe("groupA")
@@ -245,7 +246,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
         it('updates test name to match name of annotation', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                     @describe("groupA")
@@ -262,7 +263,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
         it('updates test name to match name of annotation - with params', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                     @describe("groupA")
@@ -281,7 +282,7 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
         });
         it('multiple test group annotations - different name', () => {
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest
                     @describe("groupA")
@@ -297,9 +298,9 @@ describe('RooibosPlugin', () => {
         });
 
         it('test full transpile', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest extends rooibos.BaseTestSuite
                     @describe("groupA")
@@ -395,9 +396,9 @@ end function`).trim());
             expect(a).to.eql(b);
         });
         it('test full transpile with complex params', async () => {
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
-            program.addOrReplaceFile('source/test.spec.bs', `
+            program.setFile('source/test.spec.bs', `
                 @suite
                 class ATest extends rooibos.BaseTestSuite
                     @describe("groupA")
@@ -454,15 +455,15 @@ end function`).trim());
             fsExtra.ensureDirSync(tmpPath);
 
             builder = new ProgramBuilder();
-            builder.options = util.normalizeAndResolveConfig(options);
+            builder.options = util.normalizeAndResolveConfig(options as BsConfig);
             builder.program = new Program(builder.options);
             program = builder.program;
             builder.plugins = new PluginInterface([plugin], builder.logger);
             program.plugins = new PluginInterface([plugin], builder.logger);
             program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProgramCreate(builder);
+            plugin.beforeProgramCreate({ builder: builder });
             plugin.fileFactory.sourcePath = path.resolve(path.join('../framework/src/source'));
-            plugin.afterProgramCreate(program);
+            plugin.afterProgramCreate({ program: program, builder: builder });
             // program.validate();
         });
         afterEach(() => {
@@ -473,7 +474,7 @@ end function`).trim());
         });
         it('tag one', async () => {
             plugin.session.sessionInfo.includeTags = ['one'];
-            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.setFile('source/test.spec.bs', testSource);
             program.validate();
             await builder.transpile();
             console.log(builder.getDiagnostics());
@@ -485,7 +486,7 @@ end function`).trim());
         });
         it('tag two', async () => {
             plugin.session.sessionInfo.includeTags = ['two'];
-            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.setFile('source/test.spec.bs', testSource);
             program.validate();
             await builder.transpile();
             console.log(builder.getDiagnostics());
@@ -496,7 +497,7 @@ end function`).trim());
         });
         it('tag three', async () => {
             plugin.session.sessionInfo.includeTags = ['three'];
-            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.setFile('source/test.spec.bs', testSource);
             program.validate();
             await builder.transpile();
             console.log(builder.getDiagnostics());
@@ -507,7 +508,7 @@ end function`).trim());
         });
         it('tag exclude', async () => {
             plugin.session.sessionInfo.excludeTags = ['exclude'];
-            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.setFile('source/test.spec.bs', testSource);
             program.validate();
             await builder.transpile();
             console.log(builder.getDiagnostics());
@@ -516,10 +517,10 @@ end function`).trim());
             expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
             expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('b');
         });
-        it('inlcude and exclude tags', async () => {
+        it('include and exclude tags', async () => {
             plugin.session.sessionInfo.includeTags = ['one', 'two'];
             plugin.session.sessionInfo.excludeTags = ['exclude'];
-            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.setFile('source/test.spec.bs', testSource);
             program.validate();
             await builder.transpile();
             console.log(builder.getDiagnostics());
@@ -529,7 +530,7 @@ end function`).trim());
         });
         it('Need all tags', async () => {
             plugin.session.sessionInfo.includeTags = ['one', 'two'];
-            program.addOrReplaceFile('source/test.spec.bs', testSource);
+            program.setFile('source/test.spec.bs', testSource);
             program.validate();
             await builder.transpile();
             console.log(builder.getDiagnostics());
@@ -617,7 +618,7 @@ describe.skip('run a local project', () => {
             // {
             // project: '/home/george/hope/applicaster/zapp-roku-app/bsconfig-test.json'
             // project: '/home/george/hope/open-source/maestro/swerve-app/bsconfig-test.json'
-        // }
+            // }
         ).catch(e => {
             console.error(e);
         });

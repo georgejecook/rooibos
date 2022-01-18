@@ -123,6 +123,4 @@ export class CodeCoverageProcessor {
         //`Writing to ${file.fullPath}`);
         // file.saveFileContents();
     }
-
-
 }

@@ -40,7 +40,7 @@ export class TestSuiteBuilder {
 
     public processFile(file: BrsFile): TestSuite[] {
         this.file = file;
-        let suites = [];
+        let suites = [] as TestSuite[];
         try {
             for (let cs of file.parser.references.classStatements) {
 
@@ -68,8 +68,8 @@ export class TestSuiteBuilder {
         let oldSuite = this.session.sessionInfo.testSuites.get(annotation.name);
         let suite = this.processClass(annotation, s);
         let isDuplicate = false;
-        if ((oldSuite && oldSuite.file.pathAbsolute !==
-            file.pathAbsolute)) {
+        if ((oldSuite && oldSuite.file.srcPath !==
+            file.srcPath)) {
             oldSuite.isValid = false;
             suite.isValid = false;
             diagnosticDuplicateSuite(file, oldSuite.classStatement, oldSuite.annotation);

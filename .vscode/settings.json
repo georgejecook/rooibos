@@ -7,5 +7,6 @@
     "activityBar.background": "#143141",
     "titleBar.activeBackground": "#1D445B",
     "titleBar.activeForeground": "#F7FBFD"
-  }
+  },
+  "brightscript.bsdk": "node_modules/brighterscript"
 }

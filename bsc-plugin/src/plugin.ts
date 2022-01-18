@@ -1,4 +1,9 @@
 import type {
+    AfterFileParseEvent,
+    AfterProgramCreateEvent,
+    BeforeProgramCreateEvent,
+    BeforeProgramValidateEvent,
+    BeforePublishEvent,
     BrsFile,
     BscFile,
     Program,
@@ -14,7 +19,6 @@ import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 
-
 import * as minimatch from 'minimatch';
 
 export class RooibosPlugin {
@@ -27,15 +31,15 @@ export class RooibosPlugin {
     public _builder: ProgramBuilder;
     public config: RooibosConfig;
 
-    beforeProgramCreate(builder: ProgramBuilder): void {
-        this._builder = builder;
+    beforeProgramCreate(event: BeforeProgramCreateEvent): void {
+        this._builder = event.builder;
 
-        this.config = this.getConfig((builder.options as any).rooibos || {});
+        this.config = this.getConfig((event.builder.options as any).rooibos || {});
 
         this.fileFactory = new FileFactory(this.config);
         if (!this.session) {
-            this.session = new RooibosSession(builder, this.fileFactory);
-            this.codeCoverageProcessor = new CodeCoverageProcessor(builder);
+            this.session = new RooibosSession(event.builder, this.fileFactory);
+            this.codeCoverageProcessor = new CodeCoverageProcessor(event.builder);
         }
     }
     private getConfig(options: any) {
@@ -69,14 +73,15 @@ export class RooibosPlugin {
         return config;
     }
 
-    afterProgramCreate(program: Program) {
+    afterProgramCreate(event: AfterProgramCreateEvent) {
         if (!this.isFrameworkAdded) {
-            this.fileFactory.addFrameworkFiles(program);
+            this.fileFactory.addFrameworkFiles(event.program);
         }
     }
 
-    afterFileParse(file: (BrsFile | XmlFile)): void {
+    afterFileParse(event: AfterFileParseEvent): void {
         // console.log('afp', file.pkgPath);
+        const file = event.file;
         if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
             return;
         }
@@ -91,7 +96,7 @@ export class RooibosPlugin {
         }
     }
 
-    beforePublish() {
+    beforePublish(event: BeforePublishEvent) {
         // console.log('bp');
         for (let testSuite of [...this.session.sessionInfo.testSuitesToRun.values()]) {
             let noEarlyExit = testSuite.annotation.noEarlyExit;
@@ -116,7 +121,7 @@ export class RooibosPlugin {
         this.session.createNodeFiles(this._builder.program);
     }
 
-    beforeProgramValidate() {
+    beforeProgramValidate(event: BeforeProgramValidateEvent) {
         // console.log('bpv');
         this.session.updateSessionStats();
         for (let testSuite of [...this.session.sessionInfo.testSuites.values()]) {
@@ -129,7 +134,7 @@ export class RooibosPlugin {
             return true;
         } else {
             for (let filter of this.config.includeFilters) {
-                if (!minimatch(file.pathAbsolute, filter)) {
+                if (!minimatch(file.srcPath, filter)) {
                     return false;
                 }
             }

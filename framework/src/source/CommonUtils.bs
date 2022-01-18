@@ -43,6 +43,7 @@ namespace rooibos.Common
   function getFunction(filename, functionName) as object
     if not Rooibos.Common.isNotEmptyString(functionName) then return invalid
     if not Rooibos.Common.isNotEmptyString(filename) then return invalid
+    mapFunction = invalid
     'bs:disable-next-line
     mapFunction = RBSFM_getFunctionsForFile(filename)
     'bs:disable-next-line
@@ -79,6 +80,7 @@ namespace rooibos.Common
     filenames = RBSFM_getFilenames()
     for i = 0 to filenames.count() - 1
       filename = filenames[i]
+      mapFunction = invalid
       'bs:disable-next-line
       mapFunction = RBSFM_getFunctionsForFile(filename)
       'bs:disable-next-line
