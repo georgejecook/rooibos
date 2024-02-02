@@ -32,12 +32,7 @@ namespace rooibos
       m.stats = new rooibos.Stats()
       m.runtimeConfig = new rooibos.RuntimeConfig()
       m.config = m.runtimeConfig.getRuntimeConfig()
-
-      if m.config.reporter = "JUnitTestReporter"
-        m.testReporter = new Rooibos.JUnitTestReporter(m)
-      else
-        m.testReporter = new Rooibos.ConsoleTestReporter(m)
-      end if
+      m.testReporter = m.getTestReporter()
     end function
 
     ' /**
@@ -305,6 +300,13 @@ namespace rooibos
       ut = createObject("roUrlTransfer")
       ut.SetUrl("http://localhost:8060/keypress/Home")
       ut.PostFromString("")
+    end function
+
+    private function getTestReporter()
+        if m.config.reporter = "JUnitTestReporter"
+          return new Rooibos.JUnitTestReporter(m)
+        end if
+      return new Rooibos.ConsoleTestReporter(m)
     end function
 
   end class
