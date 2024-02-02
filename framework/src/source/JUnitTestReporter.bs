@@ -2,6 +2,7 @@ namespace rooibos
   class JUnitTestReporter extends rooibos.BaseTestReporter
 
     function new(testRunner as dynamic)
+      'bs:disable-next-line
       super(testRunner)
     end function
 
