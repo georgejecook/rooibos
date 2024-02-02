@@ -25,6 +25,7 @@ export interface RooibosConfig {
     throwOnFailedAssertion?: boolean;
     sendHomeOnFinish?: boolean;
     reporter?: string;
+    reporterClass?: string;
     keepAppOpen?: boolean;
     testSceneName?: string;
 

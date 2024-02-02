@@ -138,6 +138,7 @@ export class RooibosSession {
                 Parser.parse(undent`
                     return {
                         "reporter": "${this.config.reporter || ''}"
+                        "reporterClass": ${this.config.reporterClass || 'invalid'}
                         "failFast": ${this.config.failFast ? 'true' : 'false'}
                         "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
                         "logLevel": ${this.config.logLevel ?? 0}

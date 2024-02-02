@@ -303,9 +303,12 @@ namespace rooibos
     end function
 
     private function getTestReporter()
-        if m.config.reporter = "JUnitTestReporter"
-          return new Rooibos.JUnitTestReporter(m)
-        end if
+      if rooibos.common.isFunction(m.config.reporterClass)
+        return m.config.reporterClass(m)
+      end if
+      if m.config.reporter = "JUnitTestReporter"
+        return new Rooibos.JUnitTestReporter(m)
+      end if
       return new Rooibos.ConsoleTestReporter(m)
     end function
 
