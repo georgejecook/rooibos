@@ -172,10 +172,11 @@ Here is the information converted into a Markdown table:
 | isGlobalMethodMockingEnabled       | boolean         | Default is false. Enables mocking and stubbing support for global and namespace functions                                                                                                          |
 | isGlobalMethodMockingEfficientMode | boolean         | default to true, when set causes rooibos to modify only those functions that were mocked or stubbed                                                                                                |
 | globalMethodMockingExcludedFiles   | string[]        | Files that rooibos will not modify when adding global function or namespace function mocking support                                                                                               |
-| reporter?                          | string          | The built-in reporter to use. Defaults to empty. Possible values are "" and "JUnitTestReporter".                                                                                                   |
-| reporterClass? <sup>1</sup>        | string          | The full name (namespace included) of a custom class that extends from `rooibos.BaseTestReporter`, to use as the test reporter. Defaults to empty.                                                 |
+| reporter? @deprecated <sup>1</sup> | string          | The built-in reporter to use. Defaults to empty. Possible values are `console` and `junit`.                                                                                                        |
+| reporters? <sup>2</sup>            | string[]        | An array of factory functions/classes which implement `rooibos.BaseTestReporter`. Built-in reporters include `console` and `junit`. Defaults to `["console"]`.                                     |
 
-**<sup>1</sup>** `reporterClass` is currently not supported on [node-based tests](#testing-nodes), because rooibos does not know which files it should include in the generated test components. This will be addressed in a future Rooibos version (see issue [#266](https://github.com/georgejecook/rooibos/issues/266)).
+**<sup>1</sup>** This parameter is deprecated, use `reporters` instead. When specified, the reporter will be appended to the list of `reporters`.
+**<sup>2</sup>** Custom reporters are not currently supported on [node-based tests](#testing-nodes), because rooibos does not know which files it should include in the generated test components. This will be addressed in a future Rooibos version (see issue [#266](https://github.com/georgejecook/rooibos/issues/266)).
 
 ## Creating test suites
 <a name="organize-tests-by-suites-groups-and-cases"></a>
