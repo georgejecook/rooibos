@@ -1,11 +1,6 @@
 namespace rooibos
   class JUnitTestReporter extends rooibos.BaseTestReporter
 
-    function new(testRunner as dynamic)
-      'bs:disable-next-line
-      super(testRunner)
-    end function
-
     override function onEnd(allStats as dynamic)
       root = createObject("roXMLElement")
       root.SetName("testsuites")
