@@ -6,7 +6,7 @@ namespace rooibos
       super(testRunner)
     end function
 
-    override function reportResults(allStats as dynamic)
+    override function onEnd(allStats as dynamic)
       root = createObject("roXMLElement")
       root.SetName("testsuites")
       properties = root.addElement("properties")

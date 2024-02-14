@@ -11,15 +11,11 @@ namespace rooibos
       m.allStats = runner.stats
     end function
 
-    function reportResults(allStats as dynamic)
+    function onBegin()
       'override me
     end function
 
-    function testLogInfo(text as string)
-      'override me
-    end function
-
-    function testLogError(text as string)
+    function onEnd(allStats as dynamic)
       'override me
     end function
 

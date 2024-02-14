@@ -13,7 +13,7 @@ namespace rooibos
       end if
     end function
 
-    override function reportResults(allStats)
+    override function onEnd(allStats)
       m.allStats = allStats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
@@ -185,14 +185,6 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ printing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    override function testLogInfo(text)
-      ? "INFO " ; text
-    end function
-
-    override function testLogError(text)
-      ? "ERROR " ; text
-    end function
 
     function printLine(depth = 0, text = "")
       ? " " ; text
