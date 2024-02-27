@@ -1,5 +1,5 @@
 namespace rooibos
-  interface TestReporterOnEndEvent
+  interface ITestReporterOnEndEvent
     stats as rooibos.Stats
   end interface
 
@@ -19,7 +19,7 @@ namespace rooibos
       'override me
     end function
 
-    function onEnd(ev as rooibos.TestReporterOnEndEvent)
+    function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       'override me
     end function
 

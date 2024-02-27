@@ -13,7 +13,7 @@ namespace rooibos
       end if
     end function
 
-    override function onEnd(ev as rooibos.TestReporterOnEndEvent)
+    override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       m.allStats = ev.stats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
