@@ -46,7 +46,9 @@ namespace rooibos
     public function run()
 
       for each reporter in m.testReporters
-        reporter.onBegin()
+        if rooibos.common.isFunction(reporter.onBegin)
+          reporter.onBegin()
+        end if
       end for
 
       rooibosTimer = createObject("roTimespan")
@@ -104,7 +106,9 @@ namespace rooibos
       m.stats.time = rooibosTimer.totalMilliseconds()
 
       for each reporter in m.testReporters
-        reporter.onEnd(m.stats)
+        if rooibos.common.isFunction(reporter.onEnd)
+          reporter.onEnd(m.stats)
+        end if
       end for
 
       rooibosResult = {
