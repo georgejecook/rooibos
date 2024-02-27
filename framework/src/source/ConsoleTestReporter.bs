@@ -13,8 +13,8 @@ namespace rooibos
       end if
     end function
 
-    override function onEnd(allStats)
-      m.allStats = allStats
+    override function onEnd(ev as rooibos.TestReporterOnEndEvent)
+      m.allStats = ev.stats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
