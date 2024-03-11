@@ -67,8 +67,8 @@ describe('RooibosPlugin', () => {
             it('adds code coverage to a brs file', async () => {
                 program.setFile('source/code.brs', `
                     function new(a1, a2)
-                    c = 0
-                    text = ""
+                        c = 0
+                        text = ""
                         for i = 0 to 10
                             text = text + "hello"
                             c++
@@ -91,50 +91,100 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     function new(a1, a2)
-                        RBS_CC_1_reportLine("2", 1)
+                        RBS_CC_0_reportFunction(0)
+                        RBS_CC_0_reportLine(2)
                         c = 0
-                        RBS_CC_1_reportLine("3", 1)
+                        RBS_CC_0_reportLine(3)
                         text = ""
-                        RBS_CC_1_reportLine("4", 1): for i = 0 to 10
-                            RBS_CC_1_reportLine("5", 1)
+                        RBS_CC_0_reportLine(4): for i = 0 to 10
+                            RBS_CC_0_reportBranch(0, 0)
+                            RBS_CC_0_reportLine(5)
                             text = text + "hello"
-                            RBS_CC_1_reportLine("6", 1)
+                            RBS_CC_0_reportLine(6)
                             c++
-                            RBS_CC_1_reportLine("7", 1)
+                            RBS_CC_0_reportLine(7)
                             c += 1
-                            if RBS_CC_1_reportLine("8", 2) and (c = 2)
-                                RBS_CC_1_reportLine("8", 3)
-                                RBS_CC_1_reportLine("9", 1)
+                            if RBS_CC_0_reportLine(8) and (c = 2)
+                                RBS_CC_0_reportBranch(1, 1)
+                                RBS_CC_0_reportLine(9)
                                 ? "is true"
                             end if
-                            if RBS_CC_1_reportLine("12", 2) and (c = 3)
-                                RBS_CC_1_reportLine("12", 3)
-                                RBS_CC_1_reportLine("13", 1)
+                            if RBS_CC_0_reportLine(12) and (c = 3)
+                                RBS_CC_0_reportBranch(2, 2)
+                                RBS_CC_0_reportLine(13)
                                 ? "free"
                             else
-                                RBS_CC_1_reportLine("14", 3)
-                                RBS_CC_1_reportLine("15", 1)
+                                RBS_CC_0_reportBranch(3, 3)
+                                RBS_CC_0_reportLine(15)
                                 ? "not free"
                             end if
                         end for
                     end function
 
-                    function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+                    function RBS_CC_0_reportLine(lineNumber)
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "1"
+                                "f": 0
                                 "l": lineNumber
-                                "r": reportType
+                                "r": 1
                             }
                             return true
                         end if
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "1"
+                                "f": 0
                                 "l": lineNumber
-                                "r": reportType
+                                "r": 1
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
+
+                    function RBS_CC_0_reportBranch(blockId, branchId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
+
+                    function RBS_CC_0_reportFunction(functionId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
                             }
                             m._rbs_ccn = _rbs_ccn
                             return true
@@ -175,50 +225,100 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     function new(a1, a2)
-                        RBS_CC_1_reportLine("2", 1)
+                        RBS_CC_0_reportFunction(0)
+                        RBS_CC_0_reportLine(2)
                         c = 0
-                        RBS_CC_1_reportLine("3", 1)
+                        RBS_CC_0_reportLine(3)
                         text = ""
-                        RBS_CC_1_reportLine("4", 1): for i = 0 to 10
-                            RBS_CC_1_reportLine("5", 1)
+                        RBS_CC_0_reportLine(4): for i = 0 to 10
+                            RBS_CC_0_reportBranch(0, 0)
+                            RBS_CC_0_reportLine(5)
                             text = text + "hello"
-                            RBS_CC_1_reportLine("6", 1)
+                            RBS_CC_0_reportLine(6)
                             c++
-                            RBS_CC_1_reportLine("7", 1)
+                            RBS_CC_0_reportLine(7)
                             c += 1
-                            if RBS_CC_1_reportLine("8", 2) and (c = 2)
-                                RBS_CC_1_reportLine("8", 3)
-                                RBS_CC_1_reportLine("9", 1)
+                            if RBS_CC_0_reportLine(8) and (c = 2)
+                                RBS_CC_0_reportBranch(1, 1)
+                                RBS_CC_0_reportLine(9)
                                 ? "is true"
                             end if
-                            if RBS_CC_1_reportLine("12", 2) and (c = 3)
-                                RBS_CC_1_reportLine("12", 3)
-                                RBS_CC_1_reportLine("13", 1)
+                            if RBS_CC_0_reportLine(12) and (c = 3)
+                                RBS_CC_0_reportBranch(2, 2)
+                                RBS_CC_0_reportLine(13)
                                 ? "free"
                             else
-                                RBS_CC_1_reportLine("14", 3)
-                                RBS_CC_1_reportLine("15", 1)
+                                RBS_CC_0_reportBranch(3, 3)
+                                RBS_CC_0_reportLine(15)
                                 ? "not free"
                             end if
                         end for
                     end function
 
-                    function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+                    function RBS_CC_0_reportLine(lineNumber)
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "1"
+                                "f": 0
                                 "l": lineNumber
-                                "r": reportType
+                                "r": 1
                             }
                             return true
                         end if
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "1"
+                                "f": 0
                                 "l": lineNumber
-                                "r": reportType
+                                "r": 1
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
+
+                    function RBS_CC_0_reportBranch(blockId, branchId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
+
+                    function RBS_CC_0_reportFunction(functionId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
                             }
                             m._rbs_ccn = _rbs_ccn
                             return true
@@ -267,68 +367,118 @@ describe('RooibosPlugin', () => {
                 await builder.transpile();
                 let a = getContents('source/code.brs');
                 let b = undent(`
-                function __BasicClass_builder()
-                    instance = {}
-                    instance.new = function(a1, a2)
-                        m.field1 = invalid
-                        m.field2 = invalid
-                        RBS_CC_1_reportLine("6", 1)
-                        c = 0
-                        RBS_CC_1_reportLine("7", 1)
-                        text = ""
-                        RBS_CC_1_reportLine("8", 1): for i = 0 to 10
-                            RBS_CC_1_reportLine("9", 1)
-                            text = text + "hello"
-                            RBS_CC_1_reportLine("10", 1)
-                            c++
-                            RBS_CC_1_reportLine("11", 1)
-                            c += 1
-                            if RBS_CC_1_reportLine("12", 2) and (c = 2)
-                                RBS_CC_1_reportLine("12", 3)
-                                RBS_CC_1_reportLine("13", 1)
-                                ? "is true"
-                            end if
-                            if RBS_CC_1_reportLine("16", 2) and (c = 3)
-                                RBS_CC_1_reportLine("16", 3)
-                                RBS_CC_1_reportLine("17", 1)
-                                ? "free"
-                            else
-                                RBS_CC_1_reportLine("18", 3)
-                                RBS_CC_1_reportLine("19", 1)
-                                ? "not free"
-                            end if
-                        end for
+                    function __BasicClass_builder()
+                        instance = {}
+                        instance.new = function(a1, a2)
+                            m.field1 = invalid
+                            m.field2 = invalid
+                            RBS_CC_0_reportLine(6)
+                            RBS_CC_0_reportFunction(0)
+                            c = 0
+                            RBS_CC_0_reportLine(7)
+                            text = ""
+                            RBS_CC_0_reportLine(8): for i = 0 to 10
+                                RBS_CC_0_reportBranch(0, 0)
+                                RBS_CC_0_reportLine(9)
+                                text = text + "hello"
+                                RBS_CC_0_reportLine(10)
+                                c++
+                                RBS_CC_0_reportLine(11)
+                                c += 1
+                                if RBS_CC_0_reportLine(12) and (c = 2)
+                                    RBS_CC_0_reportBranch(1, 1)
+                                    RBS_CC_0_reportLine(13)
+                                    ? "is true"
+                                end if
+                                if RBS_CC_0_reportLine(16) and (c = 3)
+                                    RBS_CC_0_reportBranch(2, 2)
+                                    RBS_CC_0_reportLine(17)
+                                    ? "free"
+                                else
+                                    RBS_CC_0_reportBranch(3, 3)
+                                    RBS_CC_0_reportLine(19)
+                                    ? "not free"
+                                end if
+                            end for
+                        end function
+                        return instance
                     end function
-                    return instance
-                end function
-                function BasicClass(a1, a2)
-                    instance = __BasicClass_builder()
-                    instance.new(a1, a2)
-                    return instance
-                end function
+                    function BasicClass(a1, a2)
+                        instance = __BasicClass_builder()
+                        instance.new(a1, a2)
+                        return instance
+                    end function
 
-                function RBS_CC_1_reportLine(lineNumber, reportType = 1)
-                    _rbs_ccn = m._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
+                    function RBS_CC_0_reportLine(lineNumber)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "l": lineNumber
+                                "r": 1
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "l": lineNumber
+                                "r": 1
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
                         return true
-                    end if
-                    _rbs_ccn = m?.global?._rbs_ccn
-                    if _rbs_ccn <> invalid
-                        _rbs_ccn.entry = {
-                            "f": "1"
-                            "l": lineNumber
-                            "r": reportType
-                        }
-                        m._rbs_ccn = _rbs_ccn
+                    end function
+
+                    function RBS_CC_0_reportBranch(blockId, branchId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
                         return true
-                    end if
-                    return true
-                end function
+                    end function
+
+                    function RBS_CC_0_reportFunction(functionId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
                 `);
                 expect(a).to.equal(b);
             });
@@ -351,34 +501,84 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     sub foo()
-                        RBS_CC_1_reportLine("1", 1)
+                        RBS_CC_0_reportFunction(0)
+                        RBS_CC_0_reportLine(1)
                         x = function(y)
-                            if RBS_CC_1_reportLine("2", 2) and ((true)) then
-                                RBS_CC_1_reportLine("2", 3)
-                                RBS_CC_1_reportLine("3", 1)
+                            RBS_CC_0_reportFunction(1)
+                            if RBS_CC_0_reportLine(2) and ((true)) then
+                                RBS_CC_0_reportBranch(0, 0)
+                                RBS_CC_0_reportLine(3)
                                 return 1
                             end if
-                            RBS_CC_1_reportLine("5", 1)
+                            RBS_CC_0_reportLine(5)
                             return 0
                         end function
                     end sub
 
-                    function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+                    function RBS_CC_0_reportLine(lineNumber)
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "1"
+                                "f": 0
                                 "l": lineNumber
-                                "r": reportType
+                                "r": 1
                             }
                             return true
                         end if
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "1"
+                                "f": 0
                                 "l": lineNumber
-                                "r": reportType
+                                "r": 1
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
+
+                    function RBS_CC_0_reportBranch(blockId, branchId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
+
+                    function RBS_CC_0_reportFunction(functionId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
                             }
                             m._rbs_ccn = _rbs_ccn
                             return true
@@ -425,65 +625,114 @@ describe('RooibosPlugin', () => {
                 let a = getContents('source/code.brs');
                 let b = undent(`
                     sub foo(action as string)
-                        if RBS_CC_1_reportLine("2", 2) and (action = "action1") then
-                            RBS_CC_1_reportLine("2", 3)
-                            RBS_CC_1_reportLine("3", 1)
+                        RBS_CC_0_reportFunction(0)
+                        if RBS_CC_0_reportLine(2) and (action = "action1") then
+                            RBS_CC_0_reportBranch(0, 0)
+                            RBS_CC_0_reportLine(3)
                             print "action1"
-                        else if RBS_CC_1_reportLine("4", 2) and (action = "action2" or action = "action2") then
-                            RBS_CC_1_reportLine("4", 3)
-                            RBS_CC_1_reportLine("5", 1)
+                        else if RBS_CC_0_reportLine(4) and (action = "action2" or action = "action2") then
+                            RBS_CC_0_reportBranch(1, 1)
+                            RBS_CC_0_reportLine(5)
                             print "action2"
-                        else if RBS_CC_1_reportLine("6", 2) and (action = "action3") then
-                            RBS_CC_1_reportLine("6", 3)
-                            RBS_CC_1_reportLine("7", 1)
+                        else if RBS_CC_0_reportLine(6) and (action = "action3") then
+                            RBS_CC_0_reportBranch(2, 2)
+                            RBS_CC_0_reportLine(7)
                             print "action3"
-                        else if RBS_CC_1_reportLine("8", 2) and (action = "action4") then
-                            RBS_CC_1_reportLine("8", 3)
-                        else if RBS_CC_1_reportLine("9", 2) and (action = "action5") then
-                            RBS_CC_1_reportLine("9", 3)
-                            RBS_CC_1_reportLine("10", 1)
+                        else if RBS_CC_0_reportLine(8) and (action = "action4") then
+                            RBS_CC_0_reportBranch(3, 3)
+                        else if RBS_CC_0_reportLine(9) and (action = "action5") then
+                            RBS_CC_0_reportBranch(4, 4)
+                            RBS_CC_0_reportLine(10)
                             print "action5"
-                        else if RBS_CC_1_reportLine("11", 2) and (action = "action6") then
-                            RBS_CC_1_reportLine("11", 3)
-                            RBS_CC_1_reportLine("12", 1)
+                        else if RBS_CC_0_reportLine(11) and (action = "action6") then
+                            RBS_CC_0_reportBranch(5, 5)
+                            RBS_CC_0_reportLine(12)
                             print "action6"
-                        else if RBS_CC_1_reportLine("13", 2) and (action = "action7") then
-                            RBS_CC_1_reportLine("13", 3)
-                            RBS_CC_1_reportLine("14", 1)
+                        else if RBS_CC_0_reportLine(13) and (action = "action7") then
+                            RBS_CC_0_reportBranch(6, 6)
+                            RBS_CC_0_reportLine(14)
                             print "action7"
-                        else if RBS_CC_1_reportLine("15", 2) and (action = "action8") then
-                            RBS_CC_1_reportLine("15", 3)
-                            RBS_CC_1_reportLine("16", 1)
+                        else if RBS_CC_0_reportLine(15) and (action = "action8") then
+                            RBS_CC_0_reportBranch(7, 7)
+                            RBS_CC_0_reportLine(16)
                             print "action8"
-                        else if RBS_CC_1_reportLine("17", 2) and (action = "action9") then
-                            RBS_CC_1_reportLine("17", 3)
-                            RBS_CC_1_reportLine("18", 1)
+                        else if RBS_CC_0_reportLine(17) and (action = "action9") then
+                            RBS_CC_0_reportBranch(8, 8)
+                            RBS_CC_0_reportLine(18)
                             print "action9"
-                        else if RBS_CC_1_reportLine("19", 2) and (action = "action10") then
-                            RBS_CC_1_reportLine("19", 3)
-                            RBS_CC_1_reportLine("20", 1)
+                        else if RBS_CC_0_reportLine(19) and (action = "action10") then
+                            RBS_CC_0_reportBranch(9, 9)
+                            RBS_CC_0_reportLine(20)
                             print "action10"
                         else
-                            RBS_CC_1_reportLine("21", 3)
+                            RBS_CC_0_reportBranch(10, 10)
                         end if
                     end sub
 
-                    function RBS_CC_1_reportLine(lineNumber, reportType = 1)
+                    function RBS_CC_0_reportLine(lineNumber)
                         _rbs_ccn = m._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "1"
+                                "f": 0
                                 "l": lineNumber
-                                "r": reportType
+                                "r": 1
                             }
                             return true
                         end if
                         _rbs_ccn = m?.global?._rbs_ccn
                         if _rbs_ccn <> invalid
                             _rbs_ccn.entry = {
-                                "f": "1"
+                                "f": 0
                                 "l": lineNumber
-                                "r": reportType
+                                "r": 1
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
+
+                    function RBS_CC_0_reportBranch(blockId, branchId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "bl": blockId
+                                "br": branchId
+                                "r": 3
+                            }
+                            m._rbs_ccn = _rbs_ccn
+                            return true
+                        end if
+                        return true
+                    end function
+
+                    function RBS_CC_0_reportFunction(functionId)
+                        _rbs_ccn = m._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
+                            }
+                            return true
+                        end if
+                        _rbs_ccn = m?.global?._rbs_ccn
+                        if _rbs_ccn <> invalid
+                            _rbs_ccn.entry = {
+                                "f": 0
+                                "fn": functionId
+                                "r": 4
                             }
                             m._rbs_ccn = _rbs_ccn
                             return true
