@@ -26,9 +26,9 @@ describe('RooibosPlugin', () => {
                 isGlobalMethodMockingEnabled: true
             }
         };
+        fsExtra.emptyDirSync(tmpPath);
         fsExtra.ensureDirSync(_stagingFolderPath);
         fsExtra.ensureDirSync(_rootDir);
-        fsExtra.ensureDirSync(tmpPath);
 
         builder = new ProgramBuilder();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -2010,6 +2010,37 @@ describe('RooibosPlugin', () => {
                 expect(plugin.session.sessionInfo.testSuitesToRun).to.not.be.empty;
                 expect(plugin.session.sessionInfo.testSuitesToRun[0].name).to.equal('a');
             });
+        });
+    });
+
+    describe('does not break class extending', () => {
+        it('does not prevent valid scope based diagnostics for node tests', () => {
+            program.setFile('components/customComponent.xml', `
+                <component name="CustomComponent" extends="Group" />
+            `);
+            program.setFile('source/baseTestClass.spec.bs', `
+                class BaseTestClass extends rooibos.BaseTestSuite
+                    public function customHelperFunction() as boolean
+                        return true
+                    end function
+                end class
+            `);
+            program.setFile('components/test2.spec.bs', `
+                @suite
+                @SGNode("CustomComponent")
+                class ATest2 extends BaseTestClass
+                    @describe("groupA")
+                    @it("test1")
+                    function _()
+                        item = {id: "item"}
+                        m.expectNotCalled(item.getFunction())
+                        m.expectNotCalled(item.getFunction())
+                    end function
+                end class
+            `);
+            program.validate();
+            let files = [...Object.values(program.files)].map(x => ({ src: x.srcPath, dest: x.pkgPath }));
+            expect(program.getDiagnostics().map(x=> x.message)).to.eql([`Cannot find name 'BaseTestClass'`]);
         });
     });
 

@@ -199,18 +199,14 @@ export class RooibosSession {
     }
 
     createNodeFile(program: Program, suite: TestSuite) {
-        let p = path.join('components', 'rooibos', 'generated');
-
         let xmlText = this.getNodeTestXmlText(suite);
-        let bsPath = path.join(p, `${suite.generatedNodeName}.bs`);
-        this.fileFactory.addFile(program, path.join(p, `${suite.generatedNodeName}.xml`), xmlText);
-        let bsFile = program.getFile(bsPath);
+        this.fileFactory.addFile(program, suite.xmlPkgPath, xmlText);
+        let bsFile = program.getFile(suite.bsPkgPath);
         if (bsFile) {
             (bsFile as BrsFile).parser.statements.push();
             bsFile.needsTranspiled = true;
         }
-        let brsFile = this.fileFactory.addFile(program, bsPath, undent`
-            import "pkg:/${suite.file.pkgPath}"
+        let brsFile = this.fileFactory.addFile(program, suite.bsPkgPath, undent`
             function init()
                 nodeRunner = Rooibos_TestRunner(m.top.getScene(), m)
                 m.top.rooibosTestResult = nodeRunner.runInNodeMode("${suite.name}")
@@ -219,8 +215,8 @@ export class RooibosSession {
         brsFile.parser.invalidateReferences();
     }
 
-    private getNodeTestXmlText(suite: TestSuite) {
-        return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName);
+    public getNodeTestXmlText(suite: TestSuite) {
+        return this.fileFactory.createTestXML(suite.generatedNodeName, suite.nodeName, suite);
     }
 
     private getNamespaceLookup(scope: Scope): Map<string, NamespaceContainer> {

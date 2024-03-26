@@ -6,12 +6,7 @@ import type {
     TranspileObj,
     AstEditor,
     BeforeFileTranspileEvent,
-    PluginHandler,
-    ClassStatement,
-    FunctionStatement,
-    Statement,
-    Scope,
-    BrsFile
+    XmlFile
 } from 'brighterscript';
 import {
     isBrsFile
@@ -21,6 +16,7 @@ import { CodeCoverageProcessor } from './lib/rooibos/CodeCoverageProcessor';
 import { FileFactory } from './lib/rooibos/FileFactory';
 import type { RooibosConfig } from './lib/rooibos/RooibosConfig';
 import * as minimatch from 'minimatch';
+import * as path from 'path';
 import { MockUtil } from './lib/rooibos/MockUtil';
 import { getScopeForSuite } from './lib/rooibos/Utils';
 
@@ -119,6 +115,15 @@ export class RooibosPlugin implements CompilerPlugin {
         this.fileFactory.addFrameworkFiles(program);
     }
 
+    afterFileDispose(file: BscFile) {
+        // eslint-disable-next-line @typescript-eslint/dot-notation
+        const xmlFile = file['rooibosXmlFile'] as XmlFile;
+        if (xmlFile) {
+            // Remove the old generated xml files
+            this._builder.program.removeFile(xmlFile.srcPath);
+        }
+    }
+
     afterFileParse(file: BscFile): void {
         // console.log('afp', file.pkgPath);
         if (file.pathAbsolute.includes('/rooibos/bsc-plugin/dist/framework')) {
@@ -129,10 +134,20 @@ export class RooibosPlugin implements CompilerPlugin {
         if (this.fileFactory.isIgnoredFile(file) || !this.shouldSearchInFileForTests(file)) {
             return;
         }
-
         // console.log('processing ', file.pkgPath);
+
         if (isBrsFile(file)) {
-            this.session.processFile(file);
+            // Add the node test component so brighter script can validate the test files
+            let suites = this.session.processFile(file);
+            let nodeSuites = suites.filter((ts) => ts.isNodeTest);
+            for (const suite of nodeSuites) {
+                const xmlFile = this._builder.program.setFile({
+                    src: path.resolve(suite.xmlPkgPath),
+                    dest: suite.xmlPkgPath
+                }, this.session.getNodeTestXmlText(suite));
+                // eslint-disable-next-line @typescript-eslint/dot-notation
+                file['rooibosXmlFile'] = xmlFile;
+            }
         }
     }
 
