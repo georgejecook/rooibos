@@ -1,4 +1,8 @@
 namespace rooibos
+  interface ITestReporterOnEndEvent
+    stats as rooibos.Stats
+  end interface
+
   class BaseTestReporter
 
     public testRunner = invalid
@@ -11,15 +15,11 @@ namespace rooibos
       m.allStats = runner.stats
     end function
 
-    function reportResults(allStats as dynamic)
+    function onBegin(ev as dynamic)
       'override me
     end function
 
-    function testLogInfo(text as string)
-      'override me
-    end function
-
-    function testLogError(text as string)
+    function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       'override me
     end function
 

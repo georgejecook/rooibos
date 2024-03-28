@@ -24,7 +24,12 @@ export interface RooibosConfig {
     catchCrashes?: boolean;
     throwOnFailedAssertion?: boolean;
     sendHomeOnFinish?: boolean;
+
+    /**
+     * @deprecated Use the `reporters` array instead
+     */
     reporter?: string;
+    reporters?: string[];
     keepAppOpen?: boolean;
     testSceneName?: string;
 

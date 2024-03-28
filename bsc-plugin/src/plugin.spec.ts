@@ -15,21 +15,13 @@ describe('RooibosPlugin', () => {
     let program: Program;
     let builder: ProgramBuilder;
     let plugin: RooibosPlugin;
-    let options;
-    beforeEach(() => {
-        plugin = new RooibosPlugin();
-        options = {
-            rootDir: _rootDir,
-            stagingFolderPath: _stagingFolderPath,
-            stagingDir: _stagingFolderPath,
-            rooibos: {
-                isGlobalMethodMockingEnabled: true
-            }
-        };
+
+    function setupProgram(options) {
         fsExtra.ensureDirSync(_stagingFolderPath);
         fsExtra.ensureDirSync(_rootDir);
         fsExtra.ensureDirSync(tmpPath);
 
+        plugin = new RooibosPlugin();
         builder = new ProgramBuilder();
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         builder.options = util.normalizeAndResolveConfig(options);
@@ -40,13 +32,28 @@ describe('RooibosPlugin', () => {
         plugin.beforeProgramCreate(builder);
         plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
         plugin.afterProgramCreate(program);
-    });
+    }
 
-    afterEach(() => {
+    function destroyProgram() {
         fsExtra.ensureDirSync(tmpPath);
         fsExtra.emptyDirSync(tmpPath);
         builder.dispose();
         program.dispose();
+    }
+
+    beforeEach(() => {
+        setupProgram({
+            rootDir: _rootDir,
+            stagingFolderPath: _stagingFolderPath,
+            stagingDir: _stagingFolderPath,
+            rooibos: {
+                isGlobalMethodMockingEnabled: true
+            }
+        });
+    });
+
+    afterEach(() => {
+        destroyProgram();
     });
 
     describe('basic tests', () => {
@@ -594,29 +601,15 @@ describe('RooibosPlugin', () => {
 
 
         it('adds launch hook with custom scene', async () => {
-            options = {
+            setupProgram({
                 rootDir: _rootDir,
                 stagingFolderPath: _stagingFolderPath,
                 stagingDir: _stagingFolderPath,
                 rooibos: {
                     testSceneName: 'CustomRooibosScene'
                 }
-            };
-            plugin = new RooibosPlugin();
-            fsExtra.ensureDirSync(_stagingFolderPath);
-            fsExtra.ensureDirSync(_rootDir);
-            fsExtra.ensureDirSync(tmpPath);
+            });
 
-            builder = new ProgramBuilder();
-            builder.options = util.normalizeAndResolveConfig(options);
-            builder.program = new Program(builder.options);
-            program = builder.program;
-            program.plugins.add(plugin);
-            program.createSourceScope(); //ensure source scope is created
-            plugin.beforeProgramCreate(builder);
-            plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
-            plugin.afterProgramCreate(program);
-            // program.validate();
             const file = program.setFile<BrsFile>('source/main.bs', `
                 sub main()
                     print "main"
@@ -1908,34 +1901,14 @@ describe('RooibosPlugin', () => {
             `;
 
             beforeEach(() => {
-                plugin = new RooibosPlugin();
-                options = {
+                setupProgram({
                     rootDir: _rootDir,
                     stagingFolderPath: _stagingFolderPath
-                };
-                fsExtra.ensureDirSync(_stagingFolderPath);
-                fsExtra.ensureDirSync(_rootDir);
-                fsExtra.ensureDirSync(tmpPath);
-
-                builder = new ProgramBuilder();
-                builder.options = util.normalizeAndResolveConfig(options);
-                builder.program = new Program(builder.options);
-                program = builder.program;
-                builder.program = new Program(builder.options);
-                program = builder.program;
-                program.plugins.add(plugin);
-                program.createSourceScope(); //ensure source scope is created
-                plugin.beforeProgramCreate(builder);
-                plugin.fileFactory['options'].frameworkSourcePath = path.resolve(path.join('../framework/src/source'));
-                plugin.afterProgramCreate(program);
-                // program.validate();
+                });
             });
 
             afterEach(() => {
-                fsExtra.ensureDirSync(tmpPath);
-                fsExtra.emptyDirSync(tmpPath);
-                builder.dispose();
-                program.dispose();
+                destroyProgram();
             });
 
             it('tag one', async () => {
@@ -2057,9 +2030,9 @@ describe('RooibosPlugin', () => {
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
 
             await builder.transpile();
-            let testContents = getTestFunctionContents();
+
             expect(
-                testContents
+                getTestFunctionContents()
             ).to.eql(undent`
                 item = {
                     id: "item"
@@ -2078,7 +2051,6 @@ describe('RooibosPlugin', () => {
                 end if
             `);
 
-            let a = getContents('rooibos/RuntimeConfig.brs');
             expect(
                 getContents('rooibos/RuntimeConfig.brs')
             ).to.eql(undent`
@@ -2091,7 +2063,9 @@ describe('RooibosPlugin', () => {
                     end function
                     instance.getRuntimeConfig = function()
                         return {
-                            "reporter": ""
+                            "reporters": [
+                                rooibos_ConsoleTestReporter
+                            ]
                             "failFast": true
                             "sendHomeOnFinish": true
                             "logLevel": 0
@@ -2142,6 +2116,85 @@ describe('RooibosPlugin', () => {
             expect(findMethod('getTestSuiteClassWithName').func.body.statements).to.be.empty;
             expect(findMethod('getAllTestSuitesNames').func.body.statements).to.be.empty;
             expect(findMethod('getIgnoredTestInfo').func.body.statements).to.be.empty;
+        });
+
+        const sep = '\n                                    ';
+        const params: [string[], string][] = [
+            [[], 'rooibos_ConsoleTestReporter'],
+            [['CONSOLE'], 'rooibos_ConsoleTestReporter'],
+            [['MyCustomReporter'], 'MyCustomReporter'],
+            [['JUnit', 'MyCustomReporter'], `rooibos_JUnitTestReporter${sep}MyCustomReporter`]
+        ];
+        it('adds custom test reporters', async () => {
+            for (const [reporters, expected] of params) {
+                setupProgram({
+                    rootDir: _rootDir,
+                    stagingFolderPath: _stagingFolderPath,
+                    stagingDir: _stagingFolderPath,
+                    rooibos: {
+                        reporters: reporters
+                    }
+                });
+
+                program.validate();
+                expect(program.getDiagnostics()).to.be.empty;
+
+                await builder.transpile();
+
+                expect(
+                    getContents('rooibos/RuntimeConfig.brs')
+                ).to.eql(undent`
+                    function __rooibos_RuntimeConfig_builder()
+                        instance = {}
+                        instance.new = sub()
+                        end sub
+                        instance.getVersionText = function()
+                            return "${version}"
+                        end function
+                        instance.getRuntimeConfig = function()
+                            return {
+                                "reporters": [
+                                    ${expected}
+                                ]
+                                "failFast": true
+                                "sendHomeOnFinish": true
+                                "logLevel": 0
+                                "showOnlyFailures": true
+                                "printTestTimes": true
+                                "lineWidth": 60
+                                "printLcov": false
+                                "port": "invalid"
+                                "catchCrashes": true
+                                "throwOnFailedAssertion": false
+                                "keepAppOpen": true
+                                "isRecordingCodeCoverage": false
+                            }
+                        end function
+                        instance.getTestSuiteClassWithName = function(name)
+                            if false
+                                ? "noop"
+                            end if
+                        end function
+                        instance.getAllTestSuitesNames = function()
+                            return []
+                        end function
+                        instance.getIgnoredTestInfo = function()
+                            return {
+                                "count": 0
+                                "items": []
+                            }
+                        end function
+                        return instance
+                    end function
+                    function rooibos_RuntimeConfig()
+                        instance = __rooibos_RuntimeConfig_builder()
+                        instance.new()
+                        return instance
+                    end function
+                `);
+
+                destroyProgram();
+            }
         });
     });
 

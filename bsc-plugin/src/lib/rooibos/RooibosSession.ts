@@ -137,7 +137,7 @@ export class RooibosSession {
                 method.func.body.statements.length,
                 Parser.parse(undent`
                     return {
-                        "reporter": "${this.config.reporter || ''}"
+                        "reporters": ${this.getReportersList()}
                         "failFast": ${this.config.failFast ? 'true' : 'false'}
                         "sendHomeOnFinish": ${this.config.sendHomeOnFinish ? 'true' : 'false'}
                         "logLevel": ${this.config.logLevel ?? 0}
@@ -154,6 +154,30 @@ export class RooibosSession {
                 `).ast.statements[0]
             );
         }
+    }
+
+    getReportersList() {
+        let reporters = this.config.reporters;
+        if (!Array.isArray(reporters)) {
+            reporters = [];
+        }
+        if (this.config.reporter) {
+            // @todo: warn that `reporter` is deprecated and to use `reporters` instead
+            reporters.push(this.config.reporter);
+        }
+        if (reporters.length < 1) {
+            reporters.push('console');
+        }
+        return `[${reporters.map(this.sanitiseReporterName).toString()}]`;
+    }
+
+    sanitiseReporterName(name: string) {
+        switch (name.toLowerCase()) {
+            case 'console': return 'rooibos_ConsoleTestReporter';
+            case 'junit': return 'rooibos_JUnitTestReporter';
+        }
+        // @todo: check if function name is valid
+        return name;
     }
 
     updateVersionTextFunction(classStatement: ClassStatement, editor: AstEditor) {

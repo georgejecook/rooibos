@@ -107,7 +107,7 @@ export class MockUtil {
             ${globalAaName} = getGlobalAa()
             if RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"] <> invalid
                 ${resultName} = RBS_SM_${this.fileId}_getMocksByFunctionName()["${methodName}"].callback(${paramNames})
-                return${requiresReturnValue ? ` ${resultName}` : '' }
+                return${requiresReturnValue ? ` ${resultName}` : ''}
             else if type(${globalAaName}?.${storageName}?.${methodName}).endsWith("Function")
                 __stubFunction = ${globalAaName}.${storageName}.${methodName}
                 ${resultName} = __stubFunction(${paramNames})

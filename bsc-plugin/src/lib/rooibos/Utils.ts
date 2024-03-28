@@ -107,7 +107,7 @@ export function getPathValuePartAsString(expr: Expression) {
 
 export function getScopeForSuite(testSuite: TestSuite) {
     if (testSuite.isNodeTest) {
-        return testSuite.file.program.getScopesForFile(testSuite.file).find((scope)=> {
+        return testSuite.file.program.getScopesForFile(testSuite.file).find((scope) => {
             return isXmlScope(scope) && scope.xmlFile.componentName.text === testSuite.generatedNodeName;
         });
 

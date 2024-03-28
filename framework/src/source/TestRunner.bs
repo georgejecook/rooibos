@@ -11,7 +11,7 @@ namespace rooibos
   '  */
   class TestRunner
     public testScene = invalid
-    public testReporter = invalid
+    public testReporters = []
     public nodeContext = invalid
     public config = invalid
     public testSuites = []
@@ -33,11 +33,7 @@ namespace rooibos
       m.runtimeConfig = new rooibos.RuntimeConfig()
       m.config = m.runtimeConfig.getRuntimeConfig()
 
-      if m.config.reporter = "JUnitTestReporter"
-        m.testReporter = new Rooibos.JUnitTestReporter(m)
-      else
-        m.testReporter = new Rooibos.ConsoleTestReporter(m)
-      end if
+      m.testReporters = m.getTestReporters()
     end function
 
     ' /**
@@ -48,6 +44,12 @@ namespace rooibos
     '  * @description Executes all tests for a project, as per the config
     '  */
     public function run()
+
+      for each reporter in m.testReporters
+        if rooibos.common.isFunction(reporter.onBegin)
+          reporter.onBegin({})
+        end if
+      end for
 
       rooibosTimer = createObject("roTimespan")
       rooibosTimer.mark()
@@ -103,7 +105,11 @@ namespace rooibos
 
       m.stats.time = rooibosTimer.totalMilliseconds()
 
-      m.testReporter.reportResults(m.stats)
+      for each reporter in m.testReporters
+        if rooibos.common.isFunction(reporter.onEnd)
+          reporter.onEnd({ stats: m.stats })
+        end if
+      end for
 
       rooibosResult = {
         stats: m.stats
@@ -305,6 +311,19 @@ namespace rooibos
       ut = createObject("roUrlTransfer")
       ut.SetUrl("http://localhost:8060/keypress/Home")
       ut.PostFromString("")
+    end function
+
+    private function getTestReporters()
+      reporters = []
+      for each factory in m.config.reporters
+        if rooibos.common.isFunction(factory)
+          reporters.push(factory(m))
+        end if
+      end for
+      if reporters.isEmpty()
+        reporters.push(new rooibos.ConsoleTestReporter(m))
+      end if
+      return reporters
     end function
 
   end class

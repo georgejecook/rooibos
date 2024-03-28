@@ -1,11 +1,7 @@
 namespace rooibos
   class JUnitTestReporter extends rooibos.BaseTestReporter
 
-    function new(testRunner as dynamic)
-      super(testRunner)
-    end function
-
-    override function reportResults(allStats as dynamic)
+    override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
       root = createObject("roXMLElement")
       root.SetName("testsuites")
       properties = root.addElement("properties")

@@ -13,8 +13,8 @@ namespace rooibos
       end if
     end function
 
-    override function reportResults(allStats)
-      m.allStats = allStats
+    override function onEnd(ev as rooibos.ITestReporterOnEndEvent)
+      m.allStats = ev.stats
       m.startReport()
       for each testSuite in m.testRunner.testSuites
         if not m.allStats.hasFailures or ((not m.config.showOnlyFailures) or testSuite.stats.failedCount > 0 or testSuite.stats.crashedCount > 0)
@@ -185,14 +185,6 @@ namespace rooibos
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ printing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    override function testLogInfo(text)
-      ? "INFO " ; text
-    end function
-
-    override function testLogError(text)
-      ? "ERROR " ; text
-    end function
 
     function printLine(depth = 0, text = "")
       ? " " ; text
