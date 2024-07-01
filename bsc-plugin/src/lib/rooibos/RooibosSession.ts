@@ -111,7 +111,7 @@ export class RooibosSession {
                 diagnosticNoStagingDir(files[0]);
             } else {
                 const filePath = path.join(this._builder.options.stagingDir ?? this._builder.options.stagingFolderPath, 'source/rooibosMain.brs');
-                fsExtra.writeFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
+                fsExtra.outputFileSync(filePath, `function main()\n    Rooibos_init("${this.config?.testSceneName ?? 'RooibosScene'}")\nend function`);
 
             }
         }

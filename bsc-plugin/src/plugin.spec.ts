@@ -213,6 +213,29 @@ describe('RooibosPlugin', () => {
             expect(plugin.session.sessionInfo.testsCount).to.equal(0);
         });
 
+        it('transpiles enums in component node tests', async () => {
+            const file = program.setFile('components/test.spec.bs', `
+                enum Direction
+                    up = "up"
+                end enum
+                namespace tests
+                    @SGNode("Rectangle")
+                    @suite("[Rectangle] Tests")
+                    class ATest extends rooibos.BaseTestSuite
+                        @describe("groupA")
+
+                        @it("is test1")
+                        function Test()
+                            print Direction.up
+                        end function
+                    end class
+                end namespace
+            `);
+            program.validate();
+            const contents = await program.getTranspiledFileContents(file.pkgPath);
+            expect(contents.code).to.include('print "up"');
+        });
+
         it('multiple groups', () => {
             program.setFile('source/test.spec.bs', `
                 @suite
