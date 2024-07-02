@@ -1,5 +1,24 @@
 namespace rooibos.Coverage
-  function reportCodeCoverage() as void
+
+  function saveResults() as dynamic
+    m.global._rbs_ccn.save = true
+    cc = m.global._rbs_ccn
+    if cc.coverageResults = invalid
+      ' The results are still being formatted
+      ' Wait for them to be reported
+      port = createObject("roMessagePort")
+      cc.observeFieldScoped("coverageResults", port)
+      msg = wait(0, port)
+      coverageResults = msg.getData()
+    else
+      ' Results are ready to go
+      coverageResults = cc.coverageResults
+    end if
+
+    return coverageResults
+  end function
+
+  function reportCodeCoverage(coverageResults as dynamic) as void
 
     if m.global._rbs_ccn = invalid
       ? "There was no rooibos code coverage component - not generating coverage report"
@@ -9,33 +28,23 @@ namespace rooibos.Coverage
     ? ""
     ? "...Generating code coverage report"
     ? ""
-    m.global._rbs_ccn.save = true
-    cc = m.global._rbs_ccn
-    expectedMap = cc.expectedMap
-    filePathMap = cc.filePathMap
-    resolvedMap = cc.resolvedMap
 
     hitFiles = []
     missFiles = []
     allLinesCount = 0
     allLinesHit = 0
-    for each key in expectedMap
-      filename = filePathMap[key]
-      expectedCount = expectedMap[key].count()
+    for each file in coverageResults.files
+      filename = "pkg:/" + file.sourceFile
+      expectedCount = file.lineTotalFound
       allLinesCount += expectedCount
+      allLinesHit += file.lineTotalHit
       if expectedCount > 0
-        if resolvedMap[key] <> invalid
-          resolvedCount = resolvedMap[key].count()
-          allLinesHit += resolvedCount
-          if resolvedCount = 0
-            resolvedPercent = 0
-          else
-            resolvedPercent = (resolvedCount / expectedCount) * 100
-          end if
-          hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(resolvedCount).trim() + "/" + stri(expectedCount).trim() + ")" })
+        if file.lineTotalHit = 0
+          resolvedPercent = 0
         else
-          missFiles.push(filename + ": MISS!")
+          resolvedPercent = (file.lineTotalHit / expectedCount) * 100
         end if
+        hitFiles.push({ percent: resolvedPercent, text: filename + ": " + str(resolvedPercent).trim() + "% (" + stri(file.lineTotalHit).trim() + "/" + stri(expectedCount).trim() + ")" })
       else
         missFiles.push(filename + ": MISS!")
       end if
@@ -52,7 +61,7 @@ namespace rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
     ? ""
     ? "Total Coverage: " ; str(allLinesPercent).trim() ; "% (" ; stri(allLinesHit).trim() ; "/" + stri(allLinesCount).trim() ; ")"
-    ? "Files: " ; resolvedMap.count(); "/" ; expectedMap.count()
+    ? "Files: " ; hitFiles.count(); "/" ; coverageResults.files.count()
     ? ""
     ? "HIT FILES"
     ? "---------"
@@ -72,62 +81,69 @@ namespace rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
   end function
 
-  function createLCovOutput(logToConsole = true as boolean)
+  function createLCovOutput(coverageResults as dynamic, logToConsole = true)
     ? "Generating lcov.info file..."
+    fileResults = []
 
-    cc = m.global._rbs_ccn
-    expectedMap = cc.expectedMap
-    filePathMap = cc.filePathMap
-    resolvedMap = cc.resolvedMap
+    for each file in coverageResults.files
+      buffer = `TN:\n`
+      buffer += `SF:${file.sourceFile}\n`
+      ' buffer += `VER:\n`
 
-    results = []
+      ' Add all the found functions for the file
+      for each func in file.functions
+        buffer += `FN:${func.startLine},${func.endLine},${func.name}\n`
+      end for
 
-    for each module in filePathMap.items()
-      buffer = ""
-      moduleNumber = module.key
-      filePath = module.value
-      packageName = "."
-
-      relativePath = filePath.replace("pkg:", packageName)
-      sanitizedPath = relativePath.replace("\\", "/")
-
-      buffer += "TN:" + chr(10)
-      buffer += "SF:" + sanitizedPath + chr(10)
-
-      for each expected in expectedMap[moduleNumber]
-        lineNumber = val(expected)
-        SHIFT = 1
-
-        if resolvedMap[moduleNumber] <> invalid and resolvedMap[moduleNumber].doesExist(expected)
-          buffer += "DA:" + str(lineNumber + SHIFT).trim() + "," + str(resolvedMap[moduleNumber][expected]).trim() + chr(10)
-        else
-          buffer += "DA:" + str(lineNumber + SHIFT).trim() + ",0" + chr(10)
+      ' Write function related data
+      for each func in file.functions
+        if func.totalHit > 0
+          buffer += `FNDA:${func.totalHit},${func.name}\n`
         end if
       end for
 
-      buffer += "LF:" + str(expectedMap[moduleNumber].count()).trim() + chr(10)
+      buffer += `FNF:${file.functionTotalFound}\n`
+      buffer += `FNH:${file.functionTotalHit}\n`
 
-      if resolvedMap[moduleNumber] <> invalid
-        buffer += "LH:" + str(resolvedMap[moduleNumber].count()).trim() + chr(10)
-      else
-        buffer += "LH:0" + chr(10)
-      end if
+      ' Write branch related data
+      for each block in file.blocks
+          for each branch in block.branches
+              if branch.totalHit > 0
+                buffer += `BRDA:${branch.line},${block.id},${branch.id},${branch.totalHit}\n`
+              end if
+          end for
+      end for
 
-      buffer += "end_of_record"
+      buffer += `BRF:${file.branchTotalFound}\n`
+      buffer += `BRH:${file.branchTotalHit}\n`
+
+      ' Write the per line related data
+      for each line in file.lines
+        buffer += `DA:${line.lineNumber},${line.totalHit}\n`
+      end for
+
+      buffer += `LF:${file.lineTotalFound}\n`
+      buffer += `LH:${file.lineTotalHit}\n`
+      buffer += `end_of_record`
+
       if logToConsole
         ? buffer
         ' When logging to the console it is very possible to flood the buffer and cause the application to exit.
         ' Sleep for a short amount of time so as to give console scrapers time to empty the buffer
         sleep(30)
       else
-        results.push(buffer)
+        fileResults.push(buffer)
       end if
     end for
 
-    return results.join(chr(10))
+    if not logToConsole
+      return fileResults.join(chr(10))
+    else
+      return ""
+    end if
   end function
 
-  function printLCovInfo()
+  function printLCovInfo(coverageResults as dynamic)
 
     ?
     ? "+++++++++++++++++++++++++++++++++++++++++++"
@@ -135,7 +151,7 @@ namespace rooibos.Coverage
     ? "+++++++++++++++++++++++++++++++++++++++++++"
     ?
     ? "+-=-coverage:start"
-    rooibos.coverage.createLCovOutput()
+    rooibos.coverage.createLCovOutput(coverageResults)
     ? "+-=-coverage:end"
   end function
 

@@ -118,10 +118,11 @@ namespace rooibos
       m.nodeContext.global.testsScene.rooibosTestResult = rooibosResult
 
       if m.config.isRecordingCodeCoverage
-        rooibos.Coverage.reportCodeCoverage()
+        coverageResults = rooibos.Coverage.saveResults()
+        rooibos.Coverage.reportCodeCoverage(coverageResults)
 
         if m.config.printLcov = true
-          rooibos.Coverage.printLCovInfo()
+          rooibos.Coverage.printLCovInfo(coverageResults)
         end if
       else
         ? "rooibos.Coverage.reportCodeCoverage is not a function"
